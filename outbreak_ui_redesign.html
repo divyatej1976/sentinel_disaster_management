@@ -1,0 +1,225 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{font-family:var(--font-sans);background:var(--color-background-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;min-height:640px}
+.topbar{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.pulse{width:8px;height:8px;border-radius:50%;background:#E24B4A;position:relative}
+.pulse::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1.5px solid #F09595;animation:ring 1.8s ease-out infinite}
+@keyframes ring{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(2)}}
+.topbar-title{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.topbar-sub{font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);padding:3px 8px;border-radius:20px;border:0.5px solid var(--color-border-tertiary)}
+.status-pill{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);padding:5px 10px;border-radius:20px;border:0.5px solid var(--color-border-tertiary)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#639922}
+.body{display:grid;grid-template-columns:220px 1fr;gap:0;min-height:596px}
+.sidebar{border-right:0.5px solid var(--color-border-tertiary);padding:18px 16px;display:flex;flex-direction:column;gap:14px;background:var(--color-background-primary)}
+.sidebar-label{font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.ctrl-block{display:flex;flex-direction:column;gap:10px}
+.ctrl-row{display:flex;flex-direction:column;gap:5px}
+.ctrl-top{display:flex;justify-content:space-between;align-items:center}
+.ctrl-name{font-size:12px;color:var(--color-text-primary)}
+.ctrl-val{font-size:12px;font-weight:500;color:var(--color-text-primary);background:var(--color-background-secondary);padding:1px 7px;border-radius:4px;border:0.5px solid var(--color-border-tertiary)}
+.track{height:3px;background:var(--color-background-tertiary);border-radius:2px;position:relative;margin-top:2px}
+.fill-blue{height:3px;background:#378ADD;border-radius:2px}
+.fill-amber{height:3px;background:#BA7517;border-radius:2px}
+.fill-green{height:3px;background:#639922;border-radius:2px}
+.fill-none{height:3px;background:var(--color-border-tertiary);border-radius:2px;width:2%}
+.divider{height:0.5px;background:var(--color-border-tertiary)}
+.run-btn{width:100%;padding:10px 0;border-radius:var(--border-radius-md);background:#185FA5;color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;letter-spacing:.01em}
+.run-btn svg{width:14px;height:14px;flex-shrink:0}
+.ghost-btn{width:100%;padding:8px 0;border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.ghost-btn svg{width:13px;height:13px}
+.main{padding:18px 20px;display:flex;flex-direction:column;gap:14px;background:var(--color-background-tertiary)}
+.tabs{display:flex;gap:2px;background:var(--color-background-secondary);padding:3px;border-radius:var(--border-radius-md);width:fit-content;border:0.5px solid var(--color-border-tertiary)}
+.tab{font-size:12px;padding:5px 14px;border-radius:6px;cursor:pointer;color:var(--color-text-secondary)}
+.tab.on{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;border:0.5px solid var(--color-border-tertiary)}
+.top-row{display:flex;align-items:center;justify-content:space-between}
+.prob-hero{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:20px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.prob-left{}
+.prob-eyebrow{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-secondary);margin-bottom:6px}
+.prob-number{font-size:42px;font-weight:500;color:#BA7517;line-height:1}
+.prob-sub{font-size:12px;color:var(--color-text-secondary);margin-top:5px}
+.ring-wrap{position:relative;width:72px;height:72px;flex-shrink:0}
+.ring-wrap svg{width:72px;height:72px}
+.ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-size:13px;font-weight:500;color:#BA7517}
+.ring-word{font-size:9px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em}
+.factor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.factor-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px}
+.factor-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:5px}
+.factor-val{font-size:16px;font-weight:500;color:var(--color-text-primary)}
+.factor-bar{height:2px;border-radius:1px;background:var(--color-background-tertiary);margin-top:7px;overflow:hidden}
+.fb-blue{height:2px;background:#378ADD;border-radius:1px}
+.fb-amber{height:2px;background:#BA7517;border-radius:1px}
+.fb-green{height:2px;background:#639922;border-radius:1px}
+.fb-red{height:2px;background:#E24B4A;border-radius:1px}
+.summary-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px 18px}
+.sum-head{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.sum-icon{width:26px;height:26px;border-radius:6px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sum-icon svg{width:14px;height:14px;color:#854F0B}
+.sum-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.sum-body{font-size:12px;color:var(--color-text-secondary);line-height:1.65}
+.expert-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.exp-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:13px}
+.exp-top{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.exp-av{width:26px;height:26px;border-radius:50%;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#0C447C;flex-shrink:0}
+.exp-name{font-size:12px;font-weight:500;color:var(--color-text-primary);line-height:1.2}
+.exp-role{font-size:10px;color:var(--color-text-secondary)}
+.exp-quote{font-size:11px;color:var(--color-text-secondary);line-height:1.55;padding-left:9px;border-left:2px solid var(--color-border-secondary);font-style:italic}
+.disagree-bar-wrap{margin-top:8px}
+.disagree-row{display:flex;justify-content:space-between;font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.d-track{height:3px;background:var(--color-background-tertiary);border-radius:2px}
+.d-fill{height:3px;background:#378ADD;border-radius:2px;width:42%}
+.risk-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;background:#FAEEDA;color:#854F0B;border:0.5px solid #EF9F27}
+.risk-badge-dot{width:5px;height:5px;border-radius:50%;background:#BA7517}
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="pulse"></div>
+      <span class="topbar-title">Outbreak Predictor</span>
+      <span class="topbar-sub">Neural consensus</span>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      Model ready
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="sidebar">
+      <div class="sidebar-label">Simulation controls</div>
+      <div class="ctrl-block">
+        <div class="ctrl-row">
+          <div class="ctrl-top"><span class="ctrl-name">Weather risk</span><span class="ctrl-val">1 / 3</span></div>
+          <div class="track"><div class="fill-blue" style="width:33%"></div></div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-top"><span class="ctrl-name">Population density</span><span class="ctrl-val">1 / 3</span></div>
+          <div class="track"><div class="fill-blue" style="width:33%"></div></div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-top"><span class="ctrl-name">Sanitation</span><span class="ctrl-val">2 / 3</span></div>
+          <div class="track"><div class="fill-green" style="width:66%"></div></div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-top"><span class="ctrl-name">Recent cases</span><span class="ctrl-val">0</span></div>
+          <div class="track"><div class="fill-none"></div></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="run-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Run prediction
+      </button>
+      <button class="ghost-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h6l3 9 4-6h5"/><path d="M21 21H3"/></svg>
+        Save as baseline
+      </button>
+    </div>
+
+    <div class="main">
+      <div class="top-row">
+        <div class="tabs">
+          <div class="tab on">Prediction</div>
+          <div class="tab">Analysis</div>
+          <div class="tab">Comparison</div>
+        </div>
+        <div class="risk-badge"><div class="risk-badge-dot"></div>Moderate risk</div>
+      </div>
+
+      <div class="prob-hero">
+        <div class="prob-left">
+          <div class="prob-eyebrow">Outbreak probability</div>
+          <div class="prob-number">68%</div>
+          <div class="prob-sub">Elevated — recommend increased surveillance</div>
+        </div>
+        <div class="ring-wrap">
+          <svg viewBox="0 0 72 72">
+            <circle cx="36" cy="36" r="28" fill="none" stroke="var(--color-background-tertiary)" stroke-width="6"/>
+            <circle cx="36" cy="36" r="28" fill="none" stroke="#BA7517" stroke-width="6"
+              stroke-dasharray="175.93" stroke-dashoffset="56.3"
+              stroke-linecap="round" transform="rotate(-90 36 36)"/>
+          </svg>
+          <div class="ring-label">
+            <span class="ring-pct">68%</span>
+            <span class="ring-word">risk</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="factor-grid">
+        <div class="factor-card">
+          <div class="factor-label">Weather risk</div>
+          <div class="factor-val">Low</div>
+          <div class="factor-bar"><div class="fb-blue" style="width:33%"></div></div>
+        </div>
+        <div class="factor-card">
+          <div class="factor-label">Population density</div>
+          <div class="factor-val">Sparse</div>
+          <div class="factor-bar"><div class="fb-blue" style="width:33%"></div></div>
+        </div>
+        <div class="factor-card">
+          <div class="factor-label">Sanitation</div>
+          <div class="factor-val">Moderate</div>
+          <div class="factor-bar"><div class="fb-green" style="width:66%"></div></div>
+        </div>
+        <div class="factor-card">
+          <div class="factor-label">Recent cases</div>
+          <div class="factor-val" style="color:var(--color-text-secondary)">None reported</div>
+          <div class="factor-bar"><div class="fb-red" style="width:2%"></div></div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="sum-head">
+          <div class="sum-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <span class="sum-title">Consensus summary</span>
+        </div>
+        <p class="sum-body">Moderate outbreak risk detected. Sanitation scores partially offset population density concerns. Zero reported cases is encouraging, though passive surveillance may be underreporting. Recommend targeted monitoring in dense urban clusters over the next 14 days.</p>
+        <div class="disagree-bar-wrap">
+          <div class="disagree-row"><span>Model disagreement</span><span>42%</span></div>
+          <div class="d-track"><div class="d-fill"></div></div>
+        </div>
+      </div>
+
+      <div class="expert-row">
+        <div class="exp-card">
+          <div class="exp-top">
+            <div class="exp-av">EP</div>
+            <div>
+              <div class="exp-name">Epidemiologist</div>
+              <div class="exp-role">Risk analysis</div>
+            </div>
+          </div>
+          <p class="exp-quote">High density with moderate sanitation creates transmission pathways that could accelerate community spread.</p>
+        </div>
+        <div class="exp-card">
+          <div class="exp-top">
+            <div class="exp-av" style="background:#EAF3DE;color:#27500A">CL</div>
+            <div>
+              <div class="exp-name">Climatologist</div>
+              <div class="exp-role">Weather model</div>
+            </div>
+          </div>
+          <p class="exp-quote">Conditions are suboptimal but not extreme. Seasonal patterns suggest elevated humidity in coming weeks.</p>
+        </div>
+        <div class="exp-card">
+          <div class="exp-top">
+            <div class="exp-av" style="background:#E1F5EE;color:#085041">PH</div>
+            <div>
+              <div class="exp-name">Public health</div>
+              <div class="exp-role">Intervention</div>
+            </div>
+          </div>
+          <p class="exp-quote">Zero cases encouraging, but proactive testing is advisable given the current environmental profile.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+{
+  "name": "AI Disease Outbreak Predictor",
+  "description": "A high-fidelity epidemiological simulation platform powered by Google Gemini and Bayesian modeling.",
+  "version": "1.2.0",
+  "author": "Antigravity AI",
+  "tech_stack": [
+    "React 19",
+    "Vite",
+    "FastAPI",
+    "Google Gemini API",
+    "Recharts",
+    "TypeScript",
+    "Lucide React"
+  ],
+  "features": [
+    "Bayesian Risk Prediction",
+    "Multi-dimensional Factor Analysis",
+    "Radar Chart Visualizations",
+    "AI-Generated Risk Mitigation Strategies",
+    "Live Data Simulation Environment"
+  ]
+}
