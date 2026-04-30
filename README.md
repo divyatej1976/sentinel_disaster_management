@@ -1,31 +1,48 @@
-# Epidemic.Intel: AI-Powered Outbreak Prediction Dashboard
+# AI Disease Outbreak Predictor: Epidemic.Intel
 
-Epidemic.Intel is a sophisticated, multi-agent decision support system designed to forecast infectious disease outbreak risks. By leveraging the Google Gemini 2.0 Flash API and real-time environmental telemetry, it provides actionable insights for public health officials and researchers.
+![Epidemic.Intel Dashboard](https://raw.githubusercontent.com/placeholder-path/screenshot.png) *(Replace with your actual screenshot)*
 
-![Dashboard Preview](https://raw.githubusercontent.com/placeholder-path/screenshot.png) *(Replace with your actual screenshot after pushing)*
+## 📖 Overview
+**Epidemic.Intel** is a sophisticated, multi-agent decision support system designed to forecast infectious disease outbreak risks. It functions as an interactive dashboard where users can adjust environmental and epidemiological factors—either manually or via live satellite/weather telemetry—to observe their impact on outbreak probability in real-time.
 
-## 🚀 Key Features
+Built as a high-fidelity tool for researchers and public health officials, this application demonstrates the power of **Multi-Agent AI Consensus**. Instead of a single model output, it simulates a council of experts (Epidemiologist, Environmental Scientist, and Strategist) to provide a nuanced, weighted risk assessment with a measurable disagreement index.
 
-- **Multi-Agent Consensus Engine**: Three independent AI expert personas (Epidemiologist, Environmental Scientist, and Public Health Strategist) evaluate telemetry data to produce a weighted risk probability and a quantifiable disagreement index.
-- **Live Environmental Telemetry**: Real-time weather data (humidity, precipitation, visibility, etc.) is automatically fetched via the Open-Meteo API based on the user's browser geolocation.
-- **Scenario Comparison Engine**: Save a "Baseline" simulation, adjust parameters (e.g., improving sanitation), and instantly see the percentage impact of potential interventions.
-- **Explainable AI (XAI)**: Detailed factor breakdowns and ranked risk drivers help users understand *why* a specific risk level was reached.
-- **High-Fidelity UI**: Interactive radar charts, probability gauges, and fluid animations built with Framer Motion and Recharts.
+---
+
+## ✨ Features
+
+- **🤖 Multi-Agent Consensus Engine**: Utilizes three independent AI expert personas to analyze telemetry data and reach a weighted consensus on risk, confidence, and drivers.
+- **🎛️ Interactive Simulation Controls**: Manually adjust critical risk factors like weather patterns, population density, sanitation infrastructure, and recent case velocity.
+- **🌐 Live Telemetry Integration**: Features an "Auto-fill from My Location" button that uses browser GPS and the **Open-Meteo API** to fetch real-time humidity, precipitation, visibility, and cloud cover.
+- **📊 Rich Data Visualization**:
+  - **Dynamic Probability Ring**: A high-fidelity visual representation of the final risk score.
+  - **Radar Profile**: Visualizes the distribution of risk factors (Weather, Density, Sanitation, Cases).
+  - **Expert Cards**: Staggered cards showing individual agent opinions, weightings, and recommendations.
+- **🧠 Scenario Comparison (The "Delta" View)**: Save a baseline state, modify parameters, and quantify the exact impact of interventions (e.g., how much a 20% sanitation improvement reduces risk).
+- **📱 Responsive Mission-Control UI**: A sleek, dark-themed "tactical" interface built with Tailwind CSS and Framer Motion for premium interactions.
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 19, TypeScript, Tailwind CSS, Framer Motion, Recharts, Lucide Icons.
-- **Backend**: Python FastAPI, Uvicorn.
-- **AI/LLM**: Google Gemini 2.0 Flash (via `google-genai`).
-- **Data APIs**: Open-Meteo (Weather), Nominatim/OpenStreetMap (Reverse Geocoding).
-- **Build Tool**: Vite.
+- **Frontend**: React 19, TypeScript, Vite
+- **Backend**: Python FastAPI, Uvicorn
+- **AI/LLM**: Google Gemini 2.0 Flash
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Visualization**: Recharts
+- **Live Data**: Open-Meteo API, Nominatim Geocoding
 
-## 📦 Installation & Setup
+---
+
+## 🚀 Getting Started
+
+To run Epidemic.Intel locally, follow these steps.
 
 ### Prerequisites
 - Node.js (v18+)
 - Python (v3.11+)
-- A Google Gemini API Key
+- A **Google Gemini API Key** (Get one at [Google AI Studio](https://aistudio.google.com/))
 
 ### 1. Clone the repository
 ```bash
@@ -33,50 +50,60 @@ git clone https://github.com/your-username/epidemic-intel.git
 cd epidemic-intel
 ```
 
-### 2. Frontend Setup
-```bash
-npm install
+### 2. Environment Setup
+Create a `.env` file in the root directory:
+```env
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
 ```
 
-### 3. Backend Setup
+### 3. Install Dependencies
 ```bash
-# Recommended: create a virtual environment
-python -m venv venv
-source venv/bin/activate # Windows: venv\Scripts\activate
+# Install Frontend
+npm install
 
+# Install Backend
 pip install -r requirements.txt
 ```
 
-### 4. Environment Variables
-Create a `.env` file in the root directory:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
+### 4. Run the Application
+You will need two terminals running:
 
-### 5. Running the Application
-**Start Backend:**
+**Terminal 1 (Backend):**
 ```bash
 python -m uvicorn server.main:app --reload --port 8000
 ```
 
-**Start Frontend:**
+**Terminal 2 (Frontend):**
 ```bash
 npm run dev
 ```
-The app will be available at `http://localhost:3000`.
-
-## 🧠 Theoretical Background
-
-The core of Epidemic.Intel is its **weighted consensus algorithm**. Instead of relying on a single prompt, the system simulates a panel of experts. 
-- **Dr. Aris (Epidemiologist)** focuses on pathogen transmission and case velocity.
-- **Prof. Lyra (Environmental Scientist)** focuses on climate stress and infrastructure.
-- **Gen. Vance (Public Health Strategist)** focuses on response capacity and mitigation priority.
-
-The final "Outbreak Risk" score is calculated by combining these independent assessments, accounting for the relative confidence and agreement between agents.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Open your browser and navigate to `http://localhost:3000`.
 
 ---
-*Built as a high-fidelity Decision Support System for Epidemiological Intelligence.*
+
+## 📂 Project Structure
+```text
+.
+├── components/          # React UI Components
+│   ├── ui/              # Generic UI (TiltCard, AnimatedChat)
+│   ├── AnalysisPanel.tsx # Expert opinion cards & drivers
+│   ├── ControlsPanel.tsx # Simulation & Live Weather inputs
+│   ├── ComparisonPanel.tsx # Scenario Delta Analysis
+│   └── PredictionPanel.tsx # Charts & Probability Gauges
+├── server/              # FastAPI Backend
+│   └── main.py          # Multi-agent consensus logic
+├── services/            # API interaction logic
+│   ├── geminiService.ts # Frontend-to-Backend API calls
+│   └── weatherService.ts # Open-Meteo & Geocoding logic
+├── App.tsx              # Main application orchestrator
+├── types.ts             # TypeScript type definitions
+└── README.md            # This file
+```
+
+---
+
+## 📄 License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+*Developed with a focus on explainable AI and precision epidemiology.*
