@@ -17,10 +17,10 @@ async def assess(request: RiskAssessmentRequest):
     try:
         result = workflow.run_assessment(request.hazard, request.data, request.model)
         return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=e.errors())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.exception("Assessment generation failed: %s", e)
         raise HTTPException(status_code=500, detail="Unable to generate risk assessment")

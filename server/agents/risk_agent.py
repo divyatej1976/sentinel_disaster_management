@@ -79,4 +79,23 @@ def run(hazard, data: dict, model: str = "gemini-2.0-flash") -> dict:
         
         opinions.append(opinion_dict)
         
-    return compute_consensus(opinions)
+    consensus_result = compute_consensus(opinions)
+    
+    expert_opinions = []
+    for op in opinions:
+        mapped_op = op.copy()
+        mapped_op["agent_id"] = mapped_op.pop("id")
+        expert_opinions.append(mapped_op)
+        
+    architecture_note = (
+        "Separate Gemini expert agents evaluate the same telemetry independently; "
+        "the API then computes weighted consensus, disagreement, confidence, and drivers."
+    )
+    
+    consensus_result.update({
+        "expert_opinions": expert_opinions,
+        "architecture_note": architecture_note,
+        "demo_mode": not has_gemini_key,
+    })
+    
+    return consensus_result
