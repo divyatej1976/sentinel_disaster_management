@@ -14,12 +14,7 @@ export interface ExpertOpinion {
   risk_rating: number;
   primary_factors: string[];
   recommendation: string;
-  factor_impacts: {
-    weather: number;
-    density: number;
-    sanitation: number;
-    cases: number;
-  };
+  factor_impacts: Record<string, number>;
 }
 
 export interface Prediction {
@@ -29,12 +24,7 @@ export interface Prediction {
   disagreement_index: number;
   confidence_explanation: string;
   expert_opinions: ExpertOpinion[];
-  critical_factors: {
-    weather: number;
-    density: number;
-    sanitation: number;
-    cases: number;
-  };
+  critical_factors: Record<string, number>;
   top_risk_drivers: string[];
   mitigation_strategies: string[];
   architecture_note: string;
