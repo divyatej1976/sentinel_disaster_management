@@ -5,4 +5,5 @@ def run_assessment(hazard: str, data: dict, model: str = "gemini-2.0-flash") -> 
     hazard_module = HAZARDS.get(hazard)
     if hazard_module is None:
         raise ValueError(f"Unknown hazard: {hazard}")
-    return risk_agent.run(hazard_module, data, model)
+    validated = hazard_module.input_schema(**data)
+    return risk_agent.run(hazard_module, validated.model_dump(), model)
