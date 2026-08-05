@@ -25,3 +25,15 @@ class RiskAssessmentResponse(BaseModel):
     architecture_note: str
     demo_mode: bool
     reasoning: List[str]
+
+class Citation(BaseModel):
+    id: str
+    citation: str
+    text: str
+    score: float
+
+class AskResponse(BaseModel):
+    question: str
+    answer: str
+    citations: List[Citation]
+    demo_mode: bool

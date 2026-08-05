@@ -33,3 +33,21 @@ const apiRequest = async <T>(path: string, payload: Record<string, any>): Promis
 export const getOutbreakPrediction = async (evidence: Evidence, model: string, location: string = "Unknown"): Promise<Prediction> => {
   return await apiRequest<Prediction>("assess", { hazard: "disease", location, data: evidence, model });
 };
+
+export interface Citation {
+  id: string;
+  citation: string;
+  text: string;
+  score: number;
+}
+
+export interface AskResponse {
+  question: string;
+  answer: string;
+  citations: Citation[];
+  demo_mode: boolean;
+}
+
+export const askKnowledgeAgent = async (hazard: string, question: string, model: string = "gemini-2.0-flash"): Promise<AskResponse> => {
+  return await apiRequest<AskResponse>("ask", { hazard, question, model });
+};

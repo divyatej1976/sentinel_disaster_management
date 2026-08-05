@@ -15,7 +15,7 @@ def build_index(chunks: List[Dict]) -> Dict:
     Tries embed_texts() on all chunk texts. If it returns real embeddings, store them
     alongside the chunks. If None, store chunks without embeddings.
     """
-    texts = [c["content"] for c in chunks]
+    texts = [c["text"] for c in chunks]
     
     # Batch embeddings to stay within limits if corpus is large
     batch_size = 100
@@ -38,13 +38,26 @@ def build_index(chunks: List[Dict]) -> Dict:
         "embeddings": all_embeddings
     }
 
+STOPWORDS = {
+    "how", "does", "is", "are", "the", "a", "an", "of", "in", "to", "and", "or", 
+    "that", "this", "what", "when", "where", "which", "who", "why", "will", "with",
+    "for", "on", "as", "by", "at", "it", "be", "from", "can", "was", "were"
+}
+
 def _tokenize(text: str) -> set:
-    return set(word.strip(".,;:!?()[]{}\"'").lower() for word in text.split() if word)
+    tokens = set()
+    for word in text.split():
+        clean_word = word.strip(".,;:!?()[]{}\"'").lower()
+        if clean_word and clean_word not in STOPWORDS:
+            tokens.add(clean_word)
+    return tokens
 
 def retrieve(index: Dict, query: str, top_k: int = 3) -> List[Dict]:
     """
     If the index has embeddings: rank chunks by cosine similarity.
     If the index has no embeddings (demo mode): rank chunks by simple keyword overlap.
+    Note: Acronym/synonym expansion (e.g. NDMA -> National Disaster Management Authority)
+    is an accepted limitation of the demo mode fallback and is left to real embeddings.
     """
     chunks = index.get("chunks", [])
     embeddings = index.get("embeddings")
@@ -65,12 +78,13 @@ def retrieve(index: Dict, query: str, top_k: int = 3) -> List[Dict]:
         # Keyword fallback
         query_tokens = _tokenize(query)
         for chunk in chunks:
-            chunk_tokens = _tokenize(chunk["content"])
+            chunk_tokens = _tokenize(chunk["text"])
             overlap = query_tokens.intersection(chunk_tokens)
-            if len(chunk_tokens) == 0:
-                score = 0.0
-            else:
-                score = len(overlap) / len(chunk_tokens)
+            # Score is primarily raw overlap count. We add a tiny decimal based on 
+            # inverse chunk length as a tiebreaker so shorter chunks win ties.
+            raw_overlap = len(overlap)
+            tiebreaker = 1.0 / (len(chunk_tokens) + 1)
+            score = float(raw_overlap) + tiebreaker
             scored_chunks.append((score, chunk))
             
     scored_chunks.sort(key=lambda x: x[0], reverse=True)

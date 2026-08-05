@@ -1,1 +1,17 @@
-# Resource-formula thresholds — data, not hardcoded constants
+Low:
+  ambulances_per_100k: 1
+  isolation_beds_per_100k: 10
+  ppe_kits_per_100k: 50
+  medical_staff_per_100k: 5
+
+Medium:
+  ambulances_per_100k: 3
+  isolation_beds_per_100k: 30
+  ppe_kits_per_100k: 150
+  medical_staff_per_100k: 15
+
+High:
+  ambulances_per_100k: 10
+  isolation_beds_per_100k: 100
+  ppe_kits_per_100k: 500
+  medical_staff_per_100k: 50

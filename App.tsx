@@ -5,14 +5,15 @@ import { PredictionPanel } from './components/PredictionPanel';
 import { AnalysisPanel } from './components/AnalysisPanel';
 import { TabNavigation } from './components/TabNavigation';
 import { ComparisonPanel } from './components/ComparisonPanel';
+import { KnowledgePanel } from './components/KnowledgePanel';
 
-import { AlertCircle, History, RefreshCcw } from 'lucide-react';
+import { AlertCircle, History, RefreshCcw, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Evidence, Prediction } from './types';
 import { getOutbreakPrediction } from './services/geminiService';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'prediction' | 'analysis' | 'comparison'>('prediction');
+  const [activeTab, setActiveTab] = useState<'prediction' | 'analysis' | 'comparison' | 'knowledge'>('prediction');
   const [loading, setLoading] = useState(false);
   const [evidence, setEvidence] = useState<Evidence>({
     Weather: 1,
@@ -100,11 +101,24 @@ const App: React.FC = () => {
           <div className="lg:col-span-8 xl:col-span-9 space-y-5">
             {/* Tab bar + status */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <TabNavigation
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                hasBaseline={!!baseline}
-              />
+              <div className="flex items-center gap-2">
+                <TabNavigation
+                  activeTab={activeTab as any}
+                  onTabChange={setActiveTab as any}
+                  hasBaseline={!!baseline}
+                />
+                <button
+                  onClick={() => setActiveTab('knowledge')}
+                  className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-white border shadow-sm ${
+                    activeTab === 'knowledge'
+                      ? 'text-blue-600 border-blue-200 bg-blue-50'
+                      : 'text-slate-500 hover:text-slate-800 border-slate-200'
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Knowledge Base
+                </button>
+              </div>
               <AnimatePresence>
                 {loading && (
                   <motion.div
@@ -155,6 +169,9 @@ const App: React.FC = () => {
                 )}
                 {activeTab === 'comparison' && baseline && prediction && (
                   <ComparisonPanel baseline={baseline} current={{ evidence, prediction }} />
+                )}
+                {activeTab === 'knowledge' && (
+                  <KnowledgePanel />
                 )}
               </motion.div>
             </AnimatePresence>

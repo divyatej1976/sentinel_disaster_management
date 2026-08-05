@@ -1,7 +1,8 @@
 import os
 import fitz
+import re
 from collections import defaultdict
-from server.rag.corpus_manifest import CONTENT_START_PAGE
+from server.rag.corpus_manifest import CONTENT_START_PAGE, DOCUMENT_TITLES
 
 def extract_chunks_from_pdf(filepath: str) -> list[dict]:
     """
@@ -9,7 +10,6 @@ def extract_chunks_from_pdf(filepath: str) -> list[dict]:
     Attempts to identify basic section headings, with 2-pass boilerplate filtering.
     """
     doc = fitz.open(filepath)
-    title = doc.metadata.get("title")
     filename = os.path.basename(filepath)
     
     if filename not in CONTENT_START_PAGE:
@@ -17,10 +17,8 @@ def extract_chunks_from_pdf(filepath: str) -> list[dict]:
         return []
         
     start_page_index = CONTENT_START_PAGE[filename] - 1
+    title = DOCUMENT_TITLES.get(filename, os.path.splitext(filename)[0].replace("_", " ").title())
     
-    if not title:
-        title = os.path.splitext(filename)[0].replace("_", " ").title()
-        
     num_pages = len(doc)
     
     # --- Pass 1: Build frequent lines set for margin and body ---
@@ -36,6 +34,19 @@ def extract_chunks_from_pdf(filepath: str) -> list[dict]:
         page_heights.append(page_height)
         
         blocks = page.get_text("dict").get("blocks", [])
+        
+        # Normalize ligatures early so it applies to both passes
+        for b in blocks:
+            if b.get("type") == 0:
+                for l in b.get("lines", []):
+                    for s in l.get("spans", []):
+                        if "text" in s:
+                            s["text"] = re.sub(r"ﬁ\s*", "fi", s["text"])
+                            s["text"] = re.sub(r"ﬂ\s*", "fl", s["text"])
+                            s["text"] = re.sub(r"ﬀ\s*", "ff", s["text"])
+                            s["text"] = re.sub(r"ﬃ\s*", "ffi", s["text"])
+                            s["text"] = re.sub(r"ﬄ\s*", "ffl", s["text"])
+                            
         pages_blocks.append(blocks)
         
         for b in blocks:
@@ -160,18 +171,16 @@ def extract_chunks_from_pdf(filepath: str) -> list[dict]:
                 "title": title,
                 "section": current_section,
                 "page": page_num + 1,
-                "content": content
+                "text": content
             })
             
     return chunks
 
-def load_disease_corpus() -> list[dict]:
+def load_disease_corpus(data_dir: str = "server/data/knowledge/disease") -> list[dict]:
     """
     Loads all real PDF documents in the disease knowledge corpus.
     Returns a list of chunk dictionaries containing page-level text and metadata.
     """
-    # Use relative path from the project root (where main.py typically runs)
-    data_dir = os.path.join("server", "data", "knowledge", "disease")
     all_chunks = []
     
     if not os.path.exists(data_dir):

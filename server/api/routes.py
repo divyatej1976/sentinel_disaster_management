@@ -25,6 +25,28 @@ async def assess(request: RiskAssessmentRequest):
         logger.exception("Assessment generation failed: %s", e)
         raise HTTPException(status_code=500, detail="Unable to generate risk assessment")
 
+from pydantic import BaseModel
+from server.schemas.response import AskResponse
+
+class AskRequest(BaseModel):
+    hazard: str
+    question: str
+    model: str = "gemini-2.0-flash"
+
+@router.post("/ask", response_model=AskResponse)
+async def ask(request: AskRequest):
+    logger.info("Processing knowledge retrieval for hazard: %s", request.hazard)
+    try:
+        result = workflow.answer_question(request.hazard, request.question, request.model)
+        return result
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=e.errors())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.exception("Knowledge retrieval failed: %s", e)
+        raise HTTPException(status_code=500, detail="Unable to retrieve knowledge")
+
 @router.get("/health")
 def health():
     return {

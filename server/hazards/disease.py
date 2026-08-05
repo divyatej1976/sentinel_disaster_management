@@ -1,6 +1,14 @@
 from typing import Any, Dict, List
+import math
+import os
+import yaml
 from pydantic import BaseModel, field_validator
 from .base import HazardModule
+
+# Load config once at module level
+config_path = os.path.join(os.path.dirname(__file__), "..", "config", "disease.yaml")
+with open(config_path, "r") as f:
+    DISEASE_CONFIG = yaml.safe_load(f)
 
 evidence_labels = {
     "Weather": ["Clear", "Mild", "Humid", "Adverse"],
@@ -32,7 +40,7 @@ class DiseaseInput(BaseModel):
 class DiseaseHazard:
     name = "disease"
     input_schema = DiseaseInput
-    knowledge_corpus_path = "data/corpus/disease"
+    knowledge_corpus_path = "server/data/knowledge/disease"
 
     personas = [
         {
@@ -129,10 +137,22 @@ one mitigation recommendation, and factor impact scores from 0-100.
         }
 
     def resource_formulas(self, risk_level: str, population: int) -> dict:
-        return {}
+        if risk_level not in DISEASE_CONFIG:
+            raise ValueError(f"Invalid risk_level '{risk_level}'. Must be one of {list(DISEASE_CONFIG.keys())}")
+        
+        rates = DISEASE_CONFIG[risk_level]
+        resources = {}
+        for category, rate in rates.items():
+            base_name = category.replace("_per_100k", "")
+            resources[base_name] = math.ceil(rate * (population / 100000.0))
+            
+        return resources
 
     def report_context(self, risk: dict, resources: dict, knowledge: dict) -> dict:
-        return {}
+        return {
+            "hazard_title": "Disease Outbreak",
+            "hazard_context": "Telemetry and expert consensus indicate biological contagion risks requiring coordinated public health measures."
+        }
 
 # Verify DiseaseHazard implements HazardModule
 _: HazardModule = DiseaseHazard()

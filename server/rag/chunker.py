@@ -11,9 +11,9 @@ def chunk_document(pages: list[dict], target_tokens: int = 400, overlap_tokens: 
         title = page.get("title")
         section = page.get("section")
         page_num = page.get("page")
-        content = page.get("content", "")
+        text = page.get("text", "")
         
-        words = content.split()
+        words = text.split()
         
         if not words:
             continue
@@ -25,9 +25,9 @@ def chunk_document(pages: list[dict], target_tokens: int = 400, overlap_tokens: 
         index_within_page = 0
         for i in range(0, len(words), step):
             chunk_words = words[i:i + target_tokens]
-            chunk_content = " ".join(chunk_words)
+            chunk_text = " ".join(chunk_words)
             
-            alnum_count = sum(c.isalnum() for c in chunk_content)
+            alnum_count = sum(c.isalnum() for c in chunk_text)
             if alnum_count < 50:
                 print(f"Skipping chunk {source}:{page_num}:{index_within_page} (alnum count {alnum_count} < 50)")
             else:
@@ -37,7 +37,7 @@ def chunk_document(pages: list[dict], target_tokens: int = 400, overlap_tokens: 
                     "section": section,
                     "page": page_num,
                     "chunk_id": f"{source}:{page_num}:{index_within_page}",
-                    "content": chunk_content
+                    "text": chunk_text
                 })
                 
             index_within_page += 1
