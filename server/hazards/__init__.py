@@ -1,5 +1,7 @@
 from .disease import DiseaseHazard
+from .flood import FloodHazard
 
 HAZARDS = {
-    "disease": DiseaseHazard()
+    "disease": DiseaseHazard(),
+    "flood": FloodHazard(),
 }

@@ -1,1 +1,14 @@
-# Resource-formula thresholds — data, not hardcoded constants
+Low:
+  rescue_boats_per_100k: 1
+  shelter_capacity_per_100k: 50
+  water_pumps_per_100k: 2
+
+Medium:
+  rescue_boats_per_100k: 5
+  shelter_capacity_per_100k: 250
+  water_pumps_per_100k: 10
+
+High:
+  rescue_boats_per_100k: 20
+  shelter_capacity_per_100k: 1000
+  water_pumps_per_100k: 40

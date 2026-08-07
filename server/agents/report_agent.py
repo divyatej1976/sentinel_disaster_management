@@ -1,3 +1,9 @@
+RISK_LEVEL_PLAIN_LANGUAGE = {
+    "Low": "The current risk in this area is low. Continue normal precautions.",
+    "Medium": "The current risk in this area is elevated. Stay alert and follow guidance from local health authorities.",
+    "High": "The current risk in this area is high. Local health authorities recommend increased precautions.",
+}
+
 def run(hazard, risk: dict, resources: dict, knowledge: dict | None, template: str) -> dict:
     # Gather context from the hazard module
     context = hazard.report_context(risk, resources, knowledge)
@@ -28,8 +34,11 @@ def run(hazard, risk: dict, resources: dict, knowledge: dict | None, template: s
         report["risk_level"] = risk.get("risk_level")
         report["confidence_score"] = risk.get("confidence_score")
         
-        # Use confidence explanation as plain-prose summary without role prefixes
-        report["summary"] = risk.get("confidence_explanation", "No detailed explanation available.")
+        # Use deterministic plain-language mapping based on risk level
+        report["summary"] = RISK_LEVEL_PLAIN_LANGUAGE.get(
+            risk.get("risk_level"), 
+            "Risk level is unknown. Please stand by for updates."
+        )
             
     elif template == "executive":
         # Condensed
