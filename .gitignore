@@ -37,3 +37,6 @@ env/
 
 # Vite
 .vite/
+
+# Database
+*.db

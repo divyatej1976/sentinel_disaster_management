@@ -24,9 +24,9 @@ def compute_consensus(opinions: List[Dict[str, Any]]) -> Dict[str, Any]:
     else:
         risk_level = "High"
 
-    all_factor_keys = set()
-    for opinion in opinions:
-        all_factor_keys.update(opinion["factor_impacts"].keys())
+    all_factor_keys = list(dict.fromkeys(
+        key for opinion in opinions for key in opinion["factor_impacts"].keys()
+    ))
 
     critical_factors = {
         key: round(sum(op["factor_impacts"].get(key, 0) * op["weight"] for op in opinions), 1)

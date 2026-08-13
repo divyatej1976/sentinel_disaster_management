@@ -81,3 +81,21 @@ def test_reasoning_length():
     result = compute_consensus(opinions)
     assert len(result["reasoning"]) == len(opinions) + 1
     assert result["reasoning"][-1] == result["confidence_explanation"]
+
+def test_deterministic_ordering():
+    # Intentionally tie three factors to test stability of sort order
+    opinions = [
+        create_opinion(
+            role="A", 
+            weight=1.0, 
+            factor_impacts={"zebra": 100, "apple": 100, "mango": 100}
+        )
+    ]
+    
+    # Run multiple times to verify ordering is stable (order should be Zebra, Apple, Mango 
+    # since they all have the same score and dict keys preserve insertion order)
+    first_run_drivers = compute_consensus(opinions)["top_risk_drivers"]
+    
+    for _ in range(5):
+        current_run_drivers = compute_consensus(opinions)["top_risk_drivers"]
+        assert current_run_drivers == first_run_drivers

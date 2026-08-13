@@ -6,6 +6,7 @@ import { AnalysisPanel } from './components/AnalysisPanel';
 import { TabNavigation } from './components/TabNavigation';
 import { ComparisonPanel } from './components/ComparisonPanel';
 import { KnowledgePanel } from './components/KnowledgePanel';
+import { HAZARD_CONTROLS, getDefaultEvidence } from './constants/hazardControls';
 
 import { AlertCircle, History, RefreshCcw, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,12 +16,8 @@ import { getOutbreakPrediction } from './services/geminiService';
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'prediction' | 'analysis' | 'comparison' | 'knowledge'>('prediction');
   const [loading, setLoading] = useState(false);
-  const [evidence, setEvidence] = useState<Evidence>({
-    Weather: 1,
-    PopulationDensity: 1,
-    Sanitation: 2,
-    RecentCases: 0,
-  });
+  const [hazard, setHazard] = useState<string>('disease');
+  const [evidence, setEvidence] = useState<Evidence>(getDefaultEvidence('disease'));
   const [prediction, setPrediction] = useState<Prediction | null>(null);
   const [baseline, setBaseline] = useState<{ evidence: Evidence; prediction: Prediction } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +26,7 @@ const App: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await getOutbreakPrediction(evidence, 'gemini-2.0-flash');
+      const result = await getOutbreakPrediction(hazard, evidence, 'gemini-2.0-flash');
       setPrediction(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -54,11 +51,34 @@ const App: React.FC = () => {
           {/* Sidebar */}
           <aside className="lg:col-span-4 xl:col-span-3 space-y-4">
             <div className="panel p-6">
-              <div className="flex items-center gap-2 mb-6">
+              <div className="flex items-center gap-2 mb-4">
                 <div className="w-1.5 h-4 bg-blue-600 rounded-full" />
                 <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Simulation Controls</h2>
               </div>
+              
+              <div className="flex bg-slate-100 p-1 rounded-lg mb-6">
+                {Object.keys(HAZARD_CONTROLS).map(h => (
+                  <button
+                    key={h}
+                    onClick={() => {
+                      if (hazard !== h) {
+                        setHazard(h);
+                        setEvidence(getDefaultEvidence(h));
+                        setPrediction(null);
+                        setBaseline(null);
+                      }
+                    }}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all uppercase tracking-wider ${
+                      hazard === h ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    {HAZARD_CONTROLS[h].label}
+                  </button>
+                ))}
+              </div>
+
               <ControlsPanel
+                hazard={hazard}
                 evidence={evidence}
                 onChange={setEvidence}
                 onPredict={handlePredict}

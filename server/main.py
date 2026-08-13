@@ -4,11 +4,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from server.api.routes import router
+from server.logging_context import RequestIdFilter
 
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - [%(request_id)s] - %(message)s"
+)
 logger = logging.getLogger("outbreak-predictor")
+logger.addFilter(RequestIdFilter())
 
 app = FastAPI(
     title="Epidemiological Intelligence API",

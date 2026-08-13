@@ -30,8 +30,8 @@ const apiRequest = async <T>(path: string, payload: Record<string, any>): Promis
   return data.data ?? (data as T);
 };
 
-export const getOutbreakPrediction = async (evidence: Evidence, model: string, location: string = "Unknown"): Promise<Prediction> => {
-  return await apiRequest<Prediction>("assess", { hazard: "disease", location, data: evidence, model });
+export const getOutbreakPrediction = async (hazard: string, evidence: Evidence, model: string, location: string = "Unknown"): Promise<Prediction> => {
+  return await apiRequest<Prediction>("assess", { hazard, location, data: evidence, model });
 };
 
 export interface Citation {

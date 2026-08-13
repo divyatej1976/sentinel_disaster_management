@@ -109,8 +109,16 @@ class HazardModule(Protocol):
     name: str
     input_schema: Type[BaseModel]          # what data this hazard needs
 
+    personas: List[Dict[str, Any]]         # one entry per prompt returned by risk_prompts(),
+                                            # same order — each has at least "id" and "weight"
+
     def risk_prompts(self, data: dict) -> list[str]:
-        """Prompts for each of the 3 consensus personas, tailored to this hazard."""
+        """Prompts for each consensus persona, tailored to this hazard."""
+
+    def deterministic_opinion(self, persona_id: str, data: dict) -> dict:
+        """Rule-based fallback for one persona, used when the LLM call fails or no key is
+        configured. Same shape the Risk Agent expects from an LLM response: opinion,
+        risk_rating, primary_factors, recommendation, factor_impacts."""
 
     def resource_formulas(self, risk_level: str, population: int) -> dict:
         """Deterministic resource calculation for this hazard."""
@@ -123,6 +131,11 @@ class HazardModule(Protocol):
 
 Adding a new hazard means writing one file that implements this interface. No changes to
 `agents/`, `orchestrator/`, or `api/`.
+
+`personas` and `deterministic_opinion` were added after the interface was first committed —
+weighted consensus and graceful LLM fallback aren't hazard-specific edge cases, every hazard
+needs both, so they belong in the shared contract rather than something each hazard module
+would otherwise invent independently. See the Decision log.
 
 ## 6. Explainability (cross-cutting, not a separate agent)
 
@@ -141,20 +154,35 @@ what already exists elsewhere.
 
 - 10–20 curated source documents (WHO / CDC / NDMA), not a bulk corpus
 - Chunk with overlap, preserve document + section metadata on every chunk
-- Every answer cites its source (`According to NDMA Flood Guidelines, Section 4.2...`) —
+- Every answer cites its source (`According to NDMA Flood Guidelines, page 42...`) —
   this is what makes the tool traceable rather than just persuasive
 
-## 8. Persistence — open decision
+**Front matter is curated out per document, not filtered heuristically.** Copyright pages,
+acknowledgements, tables of contents, and glossaries extract as valid, correctly-formed text —
+there's nothing for an automated filter to catch — but they dilute a deliberately small,
+high-quality corpus and can surface as retrieved "guidance" (e.g. a named staff member's
+acknowledgement paragraph). Each document gets one manually-verified `content_start_page` in
+`rag/corpus_manifest.py`; pages before it are excluded before chunking ever runs. This is an
+editorial judgment call, made once per document and recorded, not a heuristic that has to
+generalize.
 
-Two options, pick one before writing `db/`:
+**Citations key on document title + page number, not the extracted `section` field.**
+`section` is font-size/bold heuristic detection over real PDF content — it correctly finds true
+headings most of the time, but it has no way to distinguish "a real heading" from "a signature
+line, credential list, or ToC entry that happens to be formatted the same way." A citation like
+*"according to the credentials line under the foreword"* is a worse failure than no section name
+at all, since it's a citation that actively erodes trust rather than one that's merely plain.
+Page number, once verified against the real document, is reliable; `section` is included as
+optional supplementary context only, not asserted as fact.
 
-- **Lightweight**: SQLite, no auth, just stores past assessments/reports for the dashboard's
-  history view. Minimal build time, still demonstrates persistence.
-- **Full**: PostgreSQL + auth, per the original PRD. More build time, demonstrates more, but
-  isn't required to tell a strong architecture story.
+## 8. Persistence — resolved
 
-Default recommendation: lightweight, unless auth/persistence is itself a skill you want to
-showcase.
+**Lightweight SQLite.** No auth — `AssessmentRecord` stores the risk-step result (hazard,
+risk_level, final_probability, template, full risk result as JSON) after every `/assess` and
+`/report` call, exposed via `GET /history`. Note the scope precisely: it logs the risk
+assessment, not the final resource/citation-enriched report — `/report`'s fuller output isn't
+persisted, only the risk step that feeds it. A save failure logs a warning and never fails the
+actual request — a broken history write must not break a real assessment response.
 
 ## 9. Orchestration implementation
 
@@ -179,9 +207,9 @@ Add structured logging correlated by a per-request ID, generated once in `api/ro
 passed through the orchestrator to every agent call:
 
 ```
-request_id=8f2e...  stage=weather_fetched
-request_id=8f2e...  stage=risk_calculated   risk=HIGH confidence=0.91
+request_id=8f2e...  stage=risk_calculated
 request_id=8f2e...  stage=resources_generated
+request_id=8f2e...  stage=knowledge_retrieved   (only when a knowledge_question is given)
 request_id=8f2e...  stage=report_created
 ```
 
@@ -209,12 +237,15 @@ read as an oversight.
 
 ## 12. Roadmap
 
-- **Phase 1**: Refactor existing 3-persona consensus engine into `risk_agent.py`; define
-  `HazardModule`; migrate disease outbreak logic into `hazards/disease.py`
-- **Phase 2**: RAG pipeline + `knowledge_agent.py`, wire up existing chat UI component
-- **Phase 3**: `resource_agent.py` (deterministic) + `report_agent.py` (templated)
-- **Phase 4**: `hazards/flood.py` — second module, validates the plugin design end to end
-- **Future**: additional hazard modules, communication/alerting agent, persistence upgrade
+- **Phase 1** ✅: Refactored the 3-persona consensus engine into `risk_agent.py`; defined
+  `HazardModule`; migrated disease outbreak logic into `hazards/disease.py`
+- **Phase 2** ✅: RAG pipeline + `knowledge_agent.py`, wired into the chat UI
+- **Phase 3** ✅: `resource_agent.py` (deterministic) + `report_agent.py` (templated)
+- **Phase 4** ✅: `hazards/flood.py` — second module, plugin design validated end to end,
+  hand-verified against the real UI
+- **Phase 5** ✅: request-correlated logging, SQLite assessment history — this document
+- **Future**: additional hazard modules, communication/alerting agent, auth if the app ever
+  needs multi-user separation
 
 ## 13. Decision log
 
@@ -224,8 +255,14 @@ read as an oversight.
 | Hazard dispatch | Dict registry, not dynamic discovery | Only 2 hazards planned; simplicity over generality |
 | Explainability | Field on each agent's output, not a separate agent | Avoids a redundant LLM call with no new information |
 | Report variants | One agent, template parameter | Avoids duplicating near-identical agent classes |
-| Persistence | TBD — see section 8 | Depends on whether auth/DB is a skill to showcase |
+| Persistence | Lightweight SQLite, no auth — logs risk-step results only, not full reports | Closes the "can I see past assessments" gap in a demo without building a second project's worth of auth infrastructure the interview story doesn't need |
 | Configuration | External YAML, but only for resource-formula thresholds | Lets policy numbers change without a redeploy, without building a general config system |
 | Observability | Structured logs correlated by request_id | Makes a 4-agent pipeline debuggable |
 | Testing | Consensus math and resource formulas extracted as pure functions | LLM output isn't unit-testable; the deterministic core is |
 | Hazard module size | Single file per hazard until it exceeds ~400 lines, then split into a subpackage | Avoids premature structure |
+| HazardModule interface | Amended after first commit to add `personas` and `deterministic_opinion` | Found while implementing disease.py: weighted consensus and LLM fallback aren't optional per-hazard extras, so they belong in the contract, not bolted on ad hoc — fixed while only one hazard existed |
+| Front matter in RAG corpus | Per-document manual `content_start_page` manifest, not a heuristic filter | Front matter (copyright, acknowledgements, ToC) extracts as valid text — nothing for an automated filter to catch — but dilutes a deliberately small corpus; this is curation, not a bug fix |
+| Citation anchor | Document title + page number, primary; extracted `section` is supplementary only | `section` heuristic can't distinguish real headings from similarly-formatted credential lines or ToC entries; a wrong citation is worse than a plain one |
+| Embeddings fallback | Deterministic keyword-overlap retrieval when no API key, mirroring `deterministic_opinion()` | Without this, demo mode (which the rest of the app already supports) would silently break for the Knowledge Agent specifically |
+| Contract test input generation | Hardcoded `1` for every input_schema field, not real Pydantic-constraint introspection | Works because disease and flood happen to share a 0-3 bounded-int encoding; documented in-code as a shortcut, not hidden — a hazard with a differently-shaped field (float, enum, string) will need this upgraded, not silently assumed to work |
+| Keyword-fallback acronym matching | Accepted limitation, not fixed | "NDMA" vs. "National Disaster Management Authority" won't match under literal token overlap (confirmed: the real "International Cooperation" chunk on NDMA p.95 ranks below chunks using the full term). Real embeddings handle this natively; hardcoding acronym expansion into the fallback path would be solving a problem the primary path doesn't have |

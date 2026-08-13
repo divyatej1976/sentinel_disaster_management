@@ -22,12 +22,10 @@ export const PredictionPanel: React.FC<Props> = ({ prediction, loading }) => {
   if (loading) return <LoadingState />;
   if (!prediction) return <EmptyState />;
 
-  const chartData = [
-    { subject: 'Weather', A: prediction.critical_factors.weather },
-    { subject: 'Density', A: prediction.critical_factors.density },
-    { subject: 'Sanitation', A: prediction.critical_factors.sanitation },
-    { subject: 'Cases', A: prediction.critical_factors.cases },
-  ];
+  const chartData = Object.entries(prediction.critical_factors).map(([key, value]) => ({
+    subject: key.charAt(0).toUpperCase() + key.slice(1),
+    A: value,
+  }));
 
   const riskMeta = {
     Low: { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', ringColor: '#10b981', icon: <CheckCircle className="w-4 h-4" /> },

@@ -1,9 +1,4 @@
-export interface Evidence {
-  Weather: number;
-  PopulationDensity: number;
-  Sanitation: number;
-  RecentCases: number;
-}
+export type Evidence = Record<string, number>;
 
 export interface ExpertOpinion {
   agent_id: string;

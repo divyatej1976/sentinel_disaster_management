@@ -1,51 +1,23 @@
-from server.hazards.disease import DiseaseHazard
-from server.agents import resource_agent, report_agent
-import json
+import requests
 
-def run_tests():
-    hazard = DiseaseHazard()
+print("Sending Request 1...")
+res1 = requests.post("http://localhost:8001/api/report", json={
+    "hazard": "disease",
+    "location": "Unknown",
+    "data": {"Weather": 1, "PopulationDensity": 1, "Sanitation": 1, "RecentCases": 1},
+    "model": "gemini-2.0-flash",
+    "template": "citizen",
+    "include_knowledge_question": "What is the recommended sanitation protocol?",
+})
+print("Report 1 Status:", res1.status_code)
 
-    from server.agents import risk_agent
-    
-    # Real evidence input for disease
-    evidence = {
-        "Weather": 2, # Humid
-        "PopulationDensity": 2, # High
-        "Sanitation": 1, # Moderate
-        "RecentCases": 3 # > 5k
-    }
-    
-    # Real Risk Result (demo_mode logic triggers deterministic_opinion)
-    risk_result = risk_agent.run(hazard, evidence)
-    
-    print("--- REAL REASONING LIST ---")
-    print(json.dumps(risk_result.get("reasoning", []), indent=2))
-    print("---------------------------\n")
-
-    # Real Resource Result
-    resources_result = resource_agent.run(hazard, risk_level="High", population=500000)
-
-    # Constructed Knowledge Result
-    knowledge_result = {
-        "question": "What should be done during a cholera outbreak?",
-        "answer": "Cholera outbreaks require rapid hydration and sanitation measures.",
-        "citations": [
-            {"id": "doc1", "citation": "WHO Guidelines pg 45", "text": "Rapid rehydration is key.", "score": 0.89}
-        ],
-        "demo_mode": True
-    }
-
-    print("--- OFFICER TEMPLATE ---")
-    officer_report = report_agent.run(hazard, risk_result, resources_result, knowledge_result, "officer")
-    print(json.dumps(officer_report, indent=2))
-
-    print("\n--- CITIZEN TEMPLATE ---")
-    citizen_report = report_agent.run(hazard, risk_result, resources_result, knowledge_result, "citizen")
-    print(json.dumps(citizen_report, indent=2))
-
-    print("\n--- EXECUTIVE TEMPLATE ---")
-    executive_report = report_agent.run(hazard, risk_result, resources_result, knowledge_result, "executive")
-    print(json.dumps(executive_report, indent=2))
-
-if __name__ == "__main__":
-    run_tests()
+print("\nSending Request 2...")
+res2 = requests.post("http://localhost:8001/api/report", json={
+    "hazard": "disease",
+    "location": "Unknown",
+    "data": {"Weather": 1, "PopulationDensity": 1, "Sanitation": 1, "RecentCases": 1},
+    "model": "gemini-2.0-flash",
+    "template": "citizen",
+    "include_knowledge_question": "What is the recommended sanitation protocol?",
+})
+print("Report 2 Status:", res2.status_code)

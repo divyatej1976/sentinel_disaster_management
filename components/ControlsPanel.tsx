@@ -4,14 +4,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Evidence } from '../types';
 import { fetchLiveWeather, type WeatherData } from '../services/weatherService';
 
+import { HAZARD_CONTROLS } from '../constants/hazardControls';
+
 interface Props {
+  hazard: string;
   evidence: Evidence;
   onChange: (evidence: Evidence) => void;
   onPredict: () => void;
   loading: boolean;
 }
 
-export const ControlsPanel: React.FC<Props> = ({ evidence, onChange, onPredict, loading }) => {
+export const ControlsPanel: React.FC<Props> = ({ hazard, evidence, onChange, onPredict, loading }) => {
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherInfo, setWeatherInfo] = useState<WeatherData | null>(null);
   const [weatherError, setWeatherError] = useState<string | null>(null);
@@ -35,45 +38,17 @@ export const ControlsPanel: React.FC<Props> = ({ evidence, onChange, onPredict, 
     }
   };
 
-  const controls = [
-    {
-      key: 'Weather' as keyof Evidence,
-      icon: <Cloud className="w-4 h-4" />,
-      label: 'Weather Pattern',
-      options: ['Clear', 'Mild', 'Humid', 'Adverse'],
-      color: 'text-sky-500',
-      isLive: !!weatherInfo,
-    },
-    {
-      key: 'PopulationDensity' as keyof Evidence,
-      icon: <Users className="w-4 h-4" />,
-      label: 'Population Density',
-      options: ['Low', 'Medium', 'High', 'Very High'],
-      color: 'text-violet-500',
-      isLive: false,
-    },
-    {
-      key: 'Sanitation' as keyof Evidence,
-      icon: <Droplets className="w-4 h-4" />,
-      label: 'Sanitation Level',
-      options: ['Poor', 'Moderate', 'Good'],
-      color: 'text-teal-500',
-      isLive: false,
-    },
-    {
-      key: 'RecentCases' as keyof Evidence,
-      icon: <Activity className="w-4 h-4" />,
-      label: 'Case Velocity',
-      options: ['< 100', '101–1k', '1k–5k', '> 5k'],
-      color: 'text-rose-500',
-      isLive: false,
-    },
-  ];
-
-  // Compute a live "threat indicator" from current values
-  const threatScore = Math.round(
-    ((evidence.Weather + evidence.PopulationDensity + (2 - evidence.Sanitation) + evidence.RecentCases) / 10) * 100
+  const config = HAZARD_CONTROLS[hazard] || HAZARD_CONTROLS['disease'];
+  const controls = config.controls.map(ctrl => 
+    ctrl.key === 'Weather' ? { ...ctrl, isLive: !!weatherInfo } : ctrl
   );
+
+  // Compute a live "threat indicator" from current values dynamically
+  // Simplistic sum of current evidence values mapped over total max possible values
+  const evidenceValues = Object.values(evidence);
+  const totalValue = evidenceValues.reduce((sum, val) => sum + val, 0);
+  const maxValue = controls.length * 3; // Assuming max option index is 3
+  const threatScore = maxValue > 0 ? Math.round((totalValue / maxValue) * 100) : 0;
 
   return (
     <div className="space-y-6">
